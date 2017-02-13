@@ -1,0 +1,58 @@
+version: '2'
+
+networks:
+  custom:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: 172.20.0.0/16
+        gateway: 172.20.0.1
+
+services:
+  squid:
+    networks:
+      custom:
+        ipv4_address: 172.20.0.2
+    image: squid
+    volumes:
+      - "./squid/squid.conf:/etc/squid/squid.conf"
+
+  mysql:
+    networks:
+      custom:
+        ipv4_address: 172.20.0.3
+    depends_on:
+      - squid
+    extra_hosts:
+      - "squid:172.20.0.2"
+    image: mariadb
+    volumes:
+      - "./mysql/.data/db:/var/lib/mysql"
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: test
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+    privileged: true
+    ports:
+      - "3306:3306"
+
+  kdc:
+    networks:
+      custom:
+        ipv4_address: 172.20.0.4
+    image: sequenceiq/kerberos
+    hostname: kdc.kerberos.com
+    volumes:
+      - "/dev/urandom:/dev/random"
+      - "/etc/krb5.conf:/etc/krb5.conf"
+
+  phoenix:
+    networks:
+      custom:
+        ipv4_address: 172.20.0.5
+    image: knappek/phoenix
+    tty: true
+    entrypoint:
+        KRB_REALM: 
