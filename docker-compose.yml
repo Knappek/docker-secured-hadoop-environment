@@ -15,6 +15,7 @@ services:
       custom:
         ipv4_address: 172.20.0.2
     image: squid
+    hostname: squid
     volumes:
       - "./squid/squid.conf:/etc/squid/squid.conf"
 
@@ -27,6 +28,7 @@ services:
     extra_hosts:
       - "squid:172.20.0.2"
     image: mariadb
+    hostname: mysql
     volumes:
       - "./mysql/.data/db:/var/lib/mysql"
     environment:
@@ -42,17 +44,20 @@ services:
     networks:
       custom:
         ipv4_address: 172.20.0.4
+    depends_on:
+      - squid
+    extra_hosts:
+      - "squid:172.20.0.2"
     image: sequenceiq/kerberos
     hostname: kdc.kerberos.com
     volumes:
       - "/dev/urandom:/dev/random"
-      - "/etc/krb5.conf:/etc/krb5.conf"
 
-  phoenix:
-    networks:
-      custom:
-        ipv4_address: 172.20.0.5
-    image: knappek/phoenix
-    tty: true
-    entrypoint:
-        KRB_REALM: 
+#  phoenix:
+#    networks:
+#      custom:
+#        ipv4_address: 172.20.0.5
+#    image: knappek/phoenix
+#    tty: true
+#    entrypoint:
+#        KRB_REALM: 
