@@ -50,14 +50,26 @@ services:
       - "squid:172.20.0.2"
     image: sequenceiq/kerberos
     hostname: kdc.kerberos.com
+    environment:
+      REALM: EXAMPLE.COM
+      DOMAIN_REALM: kdc.kerberos.com
     volumes:
+      - "./kdc/krb5.conf:/etc/krb5.conf"
       - "/dev/urandom:/dev/random"
+      - "/etc/localtime:/etc/localtime:ro"
 
-#  phoenix:
-#    networks:
-#      custom:
-#        ipv4_address: 172.20.0.5
-#    image: knappek/phoenix
-#    tty: true
-#    entrypoint:
-#        KRB_REALM: 
+  phoenix:
+    networks:
+      custom:
+        ipv4_address: 172.20.0.5
+    image: knappek/phoenix-secure
+    tty: true
+    extra_hosts:
+      - "kdc.kerberos.com:172.20.0.4"
+      - "squid:172.20.0.2"
+    environment:
+      KRB_REALM: EXAMPLE.COM
+      DOMAIN_REALM: kdc.kerberos.com
+    volumes:
+      - "./kdc/krb5.conf:/etc/krb5.conf"
+      - "/etc/localtime:/etc/localtime:ro"
